@@ -6,6 +6,28 @@ import sqlite3
 from pprint import pprint
 import time,datetime
 
+def create_db(db_file=':memory:'):
+    '''初始化数据数据库 返回连接'''
+    conn = sqlite3.connect(db_file)
+    conn.text_factory = lambda x: unicode(x, 'utf-8', 'ignore')
+    return conn
+
+def create_tbl(conn,confs, tb=None,drop=False):
+    '''初始化数据表 返回连接'''
+    # conn=sqlite3.connect(':memory:')
+    tbs = {}
+    for conf in confs:
+        if len(conf)>=3:
+            tbs[conf[0]] = conf[2]
+    if tb not in tbs or tb is None:
+        return 
+    tbname = tb
+    colinfo = tbs[tb]
+    if drop:conn.execute(''' drop table if exists %s''' % tb )
+    sql=''' create table if not exists %s ( %s );''' % (tbname, colinfo)
+    print sql
+    conn.execute(sql)
+    
 def read_datename_tsv(dt, tbname, filename, parse_func=None,encode='gbk',filter_func=None):
     '''日期名字结果文件读取'''
     rows = []
@@ -41,50 +63,27 @@ def insert_table(conn, tbname,rows):
     conn.executemany(mask, rows)
     conn.commit()
 
-def init_db(db_file=':memory:'):
-    '''初始化数据数据库 返回连接'''
-    conn = sqlite3.connect(db_file)
-    conn.text_factory = lambda x: unicode(x, 'utf-8', 'ignore')
-    return conn
-
-def init_tb(conn,confs, tb=None,drop=False):
-    '''初始化数据表 返回连接'''
-    # conn=sqlite3.connect(':memory:')
-    tbs = {}
-    for conf in confs:
-        if len(conf)>=3:
-            tbs[conf[0]] = conf[2]
-    if tb not in tbs or tb is None:
-        return 
-    tbname = tb
-    colinfo = tbs[tb]
-    if drop:conn.execute(''' drop table if exists %s''' % tb )
-    sql=''' create table if not exists %s ( %s );''' % (tbname, colinfo)
-    print sql
-    conn.execute(sql)
-
-
-def query_db(c, sql):
-    cur = c.execute(sql)
+def query_db(conn, sql):
+    cur = conn.execute(sql)
     for row in cur:
         yield row
 
-def query_db_rows(c, sql):
+def query_db_rows(conn, sql):
     rows=[]
-    for row in  query_db(c, sql):
+    for row in  query_db(conn, sql):
         rows.append( row)
     return rows
 
-def exec_db(c, sql):
-    cur = c.execute(sql)
-    c.commit()
+def exec_db(conn, sql):
+    cur = conn.execute(sql)
+    conn.commit()
 
-def exec_db_many(c, sqls):
+def exec_db_many(conn, sqls):
     for sql in sqls:
-        exec_db(c, sql)
+        exec_db(conn, sql)
 
-def count_date(c, tb):
-    for row in query_db(c, ''' select '%s',date,count(*) from %s group by date''' % (tb, tb) ):
+def count_date(conn, tb):
+    for row in query_db(conn, ''' select '%s',date,count(*) from %s group by date''' % (tb, tb) ):
         print row
 
 def print_query(conn,sql):
@@ -97,24 +96,22 @@ def print_query(conn,sql):
             print st.encode('utf8'),
         print ''
 
-BASE="/home/work/dengwei/task/150416_HOLMES_SITE/export"
-
-def test():
+def ut_a():
     print load_data_file('20150817', 'mod_matrix', base+'/mod_matrix')
     
-def main():
+def test():
     conn=init_db('query.db')
     # confs=[['query','','date text,type text,query text,pv int']]
-    # init_tb(conn,confs,'query',True)
-    # rows=load_data_file('20160327', 'mod_matrix','20160327.xls')    
+    # create_tb(conn,confs,'query',True)
+    # rows=read_data_file('20160327', 'mod_matrix','20160327.xls')    
     # load_table(conn,'query',rows,)
     sql='''
     select * from query 
-    where query like '%洪金宝%'
+    where query like '%洪%'
     order by 4 desc limit 100
     '''
     for l in  query_db(conn,sql):        
         print '\t'.join(l[:3]).encode('gbk')+'\t%s'%l[3]
 
 if __name__ == '__main__':
-    main()
+    test()
