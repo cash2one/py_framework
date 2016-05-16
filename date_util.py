@@ -1,10 +1,15 @@
 import time,datetime
 
 FMT='%Y-%m-%d'
+
+def str2date(str_date,fmt=FMT):    
+    dobj = datetime.datetime.fromtimestamp(time.mktime(time.strptime(str_date,fmt)))
+    return dobj
     
 def get_date(fmt=FMT,base= datetime.datetime.now(), isobj=False, **kwargs ):
+    i_str2date=lambda str_date,fmt: datetime.datetime.fromtimestamp(time.mktime(time.strptime(str_date,fmt)))
     if type(base)==str:
-        dateobj= str2date(base)+ datetime.timedelta( **kwargs)
+        dateobj= i_str2date(base)+ datetime.timedelta( **kwargs)
     else:
         dateobj = base + datetime.timedelta( **kwargs)
     if isobj: 
@@ -12,9 +17,7 @@ def get_date(fmt=FMT,base= datetime.datetime.now(), isobj=False, **kwargs ):
     else: 
         return dateobj.strftime(fmt)
         
-def str2date(str_date,fmt=FMT):    
-    dobj = datetime.datetime.fromtimestamp(time.mktime(time.strptime(str_date,fmt)))
-    return dobj
+
     
 def get_date_obj( base=datetime.datetime.now(), **kwargs ):
     dateobj = base + datetime.timedelta( **kwargs)
@@ -36,4 +39,4 @@ if __name__ == '__main__':
     print ts2unix('2015-04-30')
     print unix2ts('1441422503000')
     print get_date(days=-1)
-    print str2date('2015-04-30')
+    # print str2date('2015-04-30')

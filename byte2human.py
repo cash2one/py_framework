@@ -129,5 +129,6 @@ if __name__ == "__main__":
     from StringIO import StringIO    
     c=StringIO(s)
     # for l in c:
-    print bytes2human(1412473559583)
+    while True:
+        print bytes2human(raw_input('input bytes:'))
 ## end of http://code.activestate.com/recipes/578019/ }}}
