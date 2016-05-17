@@ -1,5 +1,8 @@
 from __future__ import unicode_literals 
 
+def win_esc(name):
+    return name.replace('\\','\\\\')
+    
 def call_graph(frame=None, slient=False): 
     import sys,os 
     import tempfile 
@@ -15,7 +18,7 @@ def call_graph(frame=None, slient=False):
     subgraph_set = {} 
     
     while frame: 
-        filename = frame.f_code.co_filename 
+        filename = win_esc( frame.f_code.co_filename  )
         firstlineno = frame.f_code.co_firstlineno 
         function = frame.f_code.co_name 
         
@@ -42,14 +45,14 @@ def call_graph(frame=None, slient=False):
         
     for index, start in enumerate(stack): 
         if index + 1 < len_stack: 
-            start_filename = start.f_code.co_filename 
+            start_filename = win_esc( start.f_code.co_filename )
             start_firstlineno = start.f_code.co_firstlineno 
             start_function = start.f_code.co_name 
             start_lineno = start.f_lineno 
             start_subgraph = subgraph_set[start_filename] 
             
             end = stack[index + 1] 
-            end_filename = end.f_code.co_filename 
+            end_filename = win_esc( end.f_code.co_filename )
             end_firstlineno = end.f_code.co_firstlineno 
             end_function = end.f_code.co_name 
             end_subgraph = subgraph_set[end_filename] 
