@@ -9,7 +9,7 @@ def str2date(str_date,fmt=FMT):
 def get_date(fmt=FMT,base= datetime.datetime.now(), isobj=False, **kwargs ):
     i_str2date=lambda str_date,fmt: datetime.datetime.fromtimestamp(time.mktime(time.strptime(str_date,fmt)))
     if type(base)==str:
-        dateobj= i_str2date(base)+ datetime.timedelta( **kwargs)
+        dateobj= i_str2date(base,fmt)+ datetime.timedelta( **kwargs)
     else:
         dateobj = base + datetime.timedelta( **kwargs)
     if isobj: 
