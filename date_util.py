@@ -1,12 +1,12 @@
 import time,datetime
 
-FMT='%Y-%m-%d'
+DATE_FORMAT='%Y-%m-%d'
 
-def str2date(str_date,fmt=FMT):    
+def str2date(str_date,fmt=DATE_FORMAT):    
     dobj = datetime.datetime.fromtimestamp(time.mktime(time.strptime(str_date,fmt)))
     return dobj
     
-def get_date(fmt=FMT,base= datetime.datetime.now(), isobj=False, **kwargs ):
+def get_date(fmt=DATE_FORMAT,base= datetime.datetime.now(), isobj=False, **kwargs ):
     i_str2date=lambda str_date,fmt: datetime.datetime.fromtimestamp(time.mktime(time.strptime(str_date,fmt)))
     if type(base)==str:
         dateobj= i_str2date(base,fmt)+ datetime.timedelta( **kwargs)
@@ -23,13 +23,13 @@ def get_date_obj( base=datetime.datetime.now(), **kwargs ):
     dateobj = base + datetime.timedelta( **kwargs)
     return dateobj
 
-def ts2unix(str_date,mask=FMT):
+def ts2unix(str_date,mask=DATE_FORMAT):
     return \
         int(time.mktime(
          time.strptime(str_date, mask)
         )) * 1000
     
-def unix2ts(uxts,mask=FMT,base=10):
+def unix2ts(uxts,mask=DATE_FORMAT,base=10):
     return \
         datetime.datetime.fromtimestamp( 
          int(uxts,base)/1000 
