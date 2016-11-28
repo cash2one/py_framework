@@ -26,6 +26,20 @@ def peek_sql(sql):
     print '#'*8
     return stmt
     
+def next_not_empty_type(i,toks):
+    for j in range(1,10):
+        ttype=toks[i+j].ttype
+        if ttype not in (Token.Text.Whitespace, Token.Punctuation ,Token.Text.Whitespace.Newline):
+            return ttype,toks[i+j],j
+    return ttype,toks[i+j],j
+    
+def last_not_empty_type(i,toks):
+    for j in range(1,10):
+        ttype=toks[i-j].ttype
+        if ttype not in (Token.Text.Whitespace, Token.Punctuation ,Token.Text.Whitespace.Newline):
+            return ttype,toks[i-j],j
+    return ttype,toks[i-j],j
+        
 def find_depend(path):
     tbl_info=collections.defaultdict(set)
     for fname in glob.glob(path):
@@ -45,18 +59,24 @@ def find_depend(path):
                 this_token=tok.normalized
                 ### select from
                 if (this_token in ('FROM','JOIN') or this_token.endswith('JOIN')) \
-                and tok.ttype==Token.Keyword:                     
-                    if toks[i+2].ttype!=Token.Name:
+                and tok.ttype==Token.Keyword:
+                    # print next_not_empty_type(i,toks)
+                    if next_not_empty_type(i,toks)[0]!=Token.Name:                        
                         continue
                     tbname=get_tokens_tablename(i,toks)
+                    # print tbname
                     tbl_info[fname].add(('depend_table',tbname))
-                ### insert create to 
-                if stype in ('CREATE','INSERT') \
-                and this_token in ('TABLE') \
-                and tok.ttype==Token.Keyword:                     
-                    if toks[i+2].ttype!=Token.Name:
+                ### insert create to
+                # print stype,'[]',u2g(this_token)
+                if stype in ('CREATE','INSERT','CREATE OR REPLACE') \
+                and this_token in ('TABLE','VIEW') \
+                and tok.ttype==Token.Keyword:
+                    if next_not_empty_type(i,toks)[0]!=Token.Name:
+                        continue
+                    if  str(last_not_empty_type(i,toks)[1]).lower()=='lateral':                    
                         continue
                     tbname=get_tokens_tablename(i,toks)
+                    # print tbname
                     tbl_info[fname].add(('operate_table',tbname))
                 ### temp function
                 if stype=='CREATE' and this_token=='CREATE'\
@@ -91,11 +111,12 @@ def find_depend(path):
     # print tbl_info
     return tbl_info
 
-def get_tokens_tablename(i,toks):    
-    tbname=str(toks[i+2])
+def get_tokens_tablename(i,toks):  
+    ttype,namepart,basej=next_not_empty_type(i,toks)
+    tbname=str(namepart)
     for j in range(3):
-        ppos=i+3+j*2
-        npos=i+4+j*2
+        ppos=i+basej+1+j*2
+        npos=i+basej+2+j*2
         if npos>len(toks):
             break
         if str(toks[ppos])!='.':
@@ -116,16 +137,16 @@ def parenthetic_contents(string):
     
 
 if __name__=='__main__':
-    path='../hql/*.hql'
-    # path='../hql/ads_1111_sem_order_detail_day.hql'
-    path='../hql/*accu*.hql'
-    path='test.hql'
+    path='../create_view/*.hql'
+    # path='../hql/ads_1111_ec_app_flw_day.hql'
+    # path='../hql/*accu*.hql'
+    path='hql_parse_test.hql'
     import optparse,sys
     parser = optparse.OptionParser()
     parser.add_option('-p', '--path', action="store", dest="path", help="path", default=path)
     parser.add_option('-d', '--debug', action="store_true", dest="debug", help="debug", default=False)
     opts, args = parser.parse_args()
     print>>sys.stderr, 'Path mask: ', opts.path
-    global DEBUG
+    
     DEBUG=opts.debug
     find_depend(opts.path)
